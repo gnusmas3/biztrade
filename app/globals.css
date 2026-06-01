@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #0f1f3d;
+  --navy-mid: #1a3460;
+  --blue-accent: #1d4ed8;
+  --blue-light: #eff6ff;
+  --gold: #b8860b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  color: var(--text-primary);
+}
+
+.font-serif {
+  font-family: 'Noto Serif KR', serif;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center px-6 py-3 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-800 transition-colors duration-200 text-sm;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center px-6 py-3 border border-blue-700 text-blue-700 font-medium rounded-lg hover:bg-blue-50 transition-colors duration-200 text-sm;
+}
+
+.card {
+  @apply bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white placeholder-gray-400 transition;
+}
+
+.label {
+  @apply block text-sm font-medium text-gray-700 mb-1.5;
+}
+
+.section-title {
+  @apply text-2xl font-semibold text-gray-900 font-serif;
+}

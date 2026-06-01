@@ -1,0 +1,7 @@
+{
+  "/page": "app/page.js",
+  "/deals/page": "app/deals/page.js",
+  "/valuation/page": "app/valuation/page.js",
+  "/deals/[id]/page": "app/deals/[id]/page.js",
+  "/sell/page": "app/sell/page.js"
+}
