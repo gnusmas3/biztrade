@@ -9,13 +9,26 @@ export default function Navbar() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [unreadMatches, setUnreadMatches] = useState(0)
+
+  const fetchUnreadMatches = async (userId: string) => {
+    const { count } = await supabase
+      .from('deal_matches')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+    setUnreadMatches(count ?? 0)
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUserEmail(session?.user?.email ?? null)
+      if (session?.user?.id) fetchUnreadMatches(session.user.id)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user?.email ?? null)
+      if (session?.user?.id) fetchUnreadMatches(session.user.id)
+      else setUnreadMatches(0)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -29,7 +42,7 @@ export default function Navbar() {
   const links = [
     { href: '/deals', label: '매물 목록' },
     { href: '/valuation', label: '가치평가' },
-    { href: '/sell', label: '매물 등록' },
+    { href: '/my-matches', label: 'AI 추천', badge: unreadMatches },
     { href: '/my-deals', label: '내 매물' },
     { href: '/my-inquiries', label: '내 인수문의' },
   ]
@@ -53,13 +66,18 @@ export default function Navbar() {
             <Link
               key={l.href}
               href={l.href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 pathname === l.href
                   ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               {l.label}
+              {(l as { badge?: number }).badge ? (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  {(l as { badge?: number }).badge}
+                </span>
+              ) : null}
             </Link>
           ))}
         </div>
@@ -108,9 +126,14 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
-              className="px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="relative px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
             >
               {l.label}
+              {(l as { badge?: number }).badge ? (
+                <span className="min-w-[18px] h-4.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  {(l as { badge?: number }).badge}
+                </span>
+              ) : null}
             </Link>
           ))}
           <div className="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-1">

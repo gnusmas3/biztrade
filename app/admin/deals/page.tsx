@@ -35,11 +35,37 @@ function DealsContent() {
   const [updating, setUpdating] = useState<string | null>(null)
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
   const [rejectNote, setRejectNote] = useState('')
+  const [embedStatus, setEmbedStatus] = useState<Record<string, 'loading' | 'done' | 'error'>>({})
+  const [accessToken, setAccessToken] = useState<string | null>(null)
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAccessToken(session?.access_token ?? null)
+    })
     supabase.from('deals').select('*').order('created_at', { ascending: false })
       .then(({ data }) => { setDeals((data as Deal[]) ?? []); setLoading(false) })
   }, [])
+
+  // 매물 승인 시 AI 임베딩 + 매칭 트리거
+  const triggerEmbedding = async (dealId: string) => {
+    if (!accessToken) return
+    setEmbedStatus(prev => ({ ...prev, [dealId]: 'loading' }))
+    try {
+      const res = await fetch('/api/embed-deal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ dealId }),
+      })
+      const data = await res.json()
+      setEmbedStatus(prev => ({ ...prev, [dealId]: res.ok ? 'done' : 'error' }))
+      if (res.ok) console.log(`AI 매칭 완료 — ${data.matched}명에게 추천`)
+    } catch {
+      setEmbedStatus(prev => ({ ...prev, [dealId]: 'error' }))
+    }
+  }
 
   const updateStatus = async (id: string, status: DealStatus, extra?: { admin_note?: string }) => {
     setUpdating(id)
@@ -51,6 +77,8 @@ function DealsContent() {
     setDeals(prev => prev.map(d => d.id === id ? { ...d, status, ...extra } : d))
     if (selected?.id === id) setSelected(prev => prev ? { ...prev, status, ...extra } : null)
     setUpdating(null)
+    // 승인 시 자동으로 AI 임베딩 + 매칭 실행
+    if (status === 'approved') triggerEmbedding(id)
   }
 
   const handleReject = async (id: string) => {
@@ -129,7 +157,11 @@ function DealsContent() {
                         <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{new Date(deal.created_at).toLocaleDateString('ko-KR')}</td>
                         <td className="px-4 py-3 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                           <div className="flex gap-1">
-                            {deal.status !== 'approved' && deal.status !== 'sold' && <button disabled={updating === deal.id} onClick={() => updateStatus(deal.id, 'approved')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50">승인</button>}
+                            {deal.status !== 'approved' && deal.status !== 'sold' && <button disabled={updating === deal.id} onClick={() => updateStatus(deal.id, 'approved')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 flex items-center gap-1">
+                              승인
+                              {embedStatus[deal.id] === 'loading' && <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>}
+                              {embedStatus[deal.id] === 'done' && <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" d="M5 13l4 4L19 7"/></svg>}
+                            </button>}
                             {deal.status !== 'rejected' && deal.status !== 'sold' && <button disabled={updating === deal.id} onClick={() => { setRejectTarget(deal.id); setRejectNote('') }} className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50">반려</button>}
                             {deal.status === 'approved' && <button disabled={updating === deal.id} onClick={() => updateStatus(deal.id, 'sold')} className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50">거래완료</button>}
                             <button disabled={updating === deal.id} onClick={() => deleteDeal(deal.id)} className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50">삭제</button>

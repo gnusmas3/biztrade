@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/batch-embed",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
