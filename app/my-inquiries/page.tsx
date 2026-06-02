@@ -43,7 +43,7 @@ export default function MyInquiriesPage() {
     return (
       <div className="max-w-xl mx-auto px-6 py-24 text-center">
         <p className="text-gray-500 text-sm mb-4">로그인 후 이용하실 수 있습니다.</p>
-        <button onClick={() => router.push('/admin/login')} className="btn-primary">
+        <button onClick={() => router.push('/auth?redirect=/my-inquiries')} className="btn-primary">
           로그인
         </button>
       </div>

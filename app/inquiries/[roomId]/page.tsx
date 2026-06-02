@@ -295,7 +295,7 @@ export default function InquiryRoomPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const uid = session?.user?.id ?? null
       setUserId(uid)
-      if (!uid) { router.replace('/admin/login'); return }
+      if (!uid) { router.replace(`/auth?redirect=/inquiries/${roomId}`); return }
 
       // Check admin role
       const { data: profile } = await supabase

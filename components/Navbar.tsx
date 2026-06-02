@@ -1,11 +1,30 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserEmail(session?.user?.email ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+    setOpen(false)
+  }
 
   const links = [
     { href: '/deals', label: '매물 목록' },
@@ -45,7 +64,23 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        {/* Desktop right */}
+        <div className="hidden md:flex items-center gap-2">
+          {userEmail ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 max-w-[140px] truncate">{userEmail}</span>
+              <button
+                onClick={handleLogout}
+                className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+              >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <Link href="/auth" className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+              로그인
+            </Link>
+          )}
           <Link href="/sell" className="btn-primary text-xs px-4 py-2">
             + 매물 등록
           </Link>
@@ -78,9 +113,23 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link href="/sell" onClick={() => setOpen(false)} className="btn-primary mt-2 text-sm">
-            + 매물 등록
-          </Link>
+          <div className="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-1">
+            {userEmail ? (
+              <>
+                <p className="text-xs text-gray-400 px-3 py-1 truncate">{userEmail}</p>
+                <button onClick={handleLogout} className="text-left px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50">
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <Link href="/auth" onClick={() => setOpen(false)} className="px-3 py-2.5 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50">
+                로그인 / 회원가입
+              </Link>
+            )}
+            <Link href="/sell" onClick={() => setOpen(false)} className="btn-primary mt-1 text-sm text-center">
+              + 매물 등록
+            </Link>
+          </div>
         </div>
       )}
     </nav>

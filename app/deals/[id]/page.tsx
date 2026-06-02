@@ -39,6 +39,7 @@ export default function DealDetailPage() {
   const [interestLoading, setInterestLoading] = useState(false)
   const [inquiryLoading, setInquiryLoading] = useState(false)
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+  const [inquiryError, setInquiryError] = useState('')
 
   useEffect(() => {
     const init = async () => {
@@ -84,6 +85,7 @@ export default function DealDetailPage() {
     if (!userId) { setShowAuthPrompt(true); return }
     if (!deal) return
     setInquiryLoading(true)
+    setInquiryError('')
 
     // 이미 존재하는 방 확인
     const { data: existing } = await supabase
@@ -111,8 +113,11 @@ export default function DealDetailPage() {
       .single()
 
     setInquiryLoading(false)
-    if (room) router.push(`/inquiries/${room.id}`)
-    else console.error(error)
+    if (room) {
+      router.push(`/inquiries/${room.id}`)
+    } else {
+      setInquiryError('거래방 생성에 실패했습니다: ' + (error?.message ?? '알 수 없는 오류'))
+    }
   }
 
   if (loading) {
@@ -155,7 +160,7 @@ export default function DealDetailPage() {
               <button onClick={() => setShowAuthPrompt(false)} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-700 font-medium hover:bg-gray-50">
                 취소
               </button>
-              <button onClick={() => router.push('/admin/login')} className="flex-1 py-2.5 bg-blue-700 text-white rounded-xl text-sm font-medium hover:bg-blue-800">
+              <button onClick={() => router.push(`/auth?redirect=/deals/${deal.id}`)} className="flex-1 py-2.5 bg-blue-700 text-white rounded-xl text-sm font-medium hover:bg-blue-800">
                 로그인
               </button>
             </div>
@@ -299,6 +304,12 @@ export default function DealDetailPage() {
                 </span>
               ) : '인수문의 시작'}
             </button>
+
+            {inquiryError && (
+              <div className="mb-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {inquiryError}
+              </div>
+            )}
 
             {/* 관심등록 토글 */}
             <button
