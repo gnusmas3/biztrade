@@ -11,6 +11,7 @@ export default function Navbar() {
     { href: '/deals', label: '매물 목록' },
     { href: '/valuation', label: '가치평가' },
     { href: '/sell', label: '매물 등록' },
+    { href: '/my-deals', label: '내 매물' },
   ]
 
   return (

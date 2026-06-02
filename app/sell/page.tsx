@@ -20,12 +20,14 @@ export default function SellPage() {
   const handle = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
-  const submit = async () => {
+  const submit = async (status: 'draft' | 'pending') => {
     if (!form.title || !form.industry || !form.region || !form.contact_email) {
       setError('기업명, 업종, 지역, 연락처 이메일은 필수입니다.')
       return
     }
     setLoading(true); setError('')
+    const { data: { session } } = await supabase.auth.getSession()
+    const seller_id = session?.user?.id ?? null
     const { error: err } = await supabase.from('deals').insert({
       title: form.title, industry: form.industry, region: form.region,
       founded_year: form.founded_year ? parseInt(form.founded_year) : null,
@@ -37,7 +39,8 @@ export default function SellPage() {
       description: form.description, strengths: form.strengths,
       risks: form.risks, reason_for_sale: form.reason_for_sale,
       contact_email: form.contact_email, contact_phone: form.contact_phone,
-      status: 'pending',
+      status,
+      seller_id,
     })
     setLoading(false)
     if (err) setError('등록에 실패했습니다. 다시 시도해주세요.')
@@ -177,9 +180,14 @@ export default function SellPage() {
           </div>
         )}
 
-        <button onClick={submit} disabled={loading} className="btn-primary w-full py-4 text-base">
-          {loading ? '등록 중...' : '매물 등록 신청하기'}
-        </button>
+        <div className="flex gap-3">
+          <button onClick={() => submit('draft')} disabled={loading} className="flex-1 py-4 text-base border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50">
+            {loading ? '저장 중...' : '임시저장'}
+          </button>
+          <button onClick={() => submit('pending')} disabled={loading} className="flex-1 btn-primary py-4 text-base">
+            {loading ? '신청 중...' : '검토 요청'}
+          </button>
+        </div>
 
         <p className="text-xs text-center text-gray-400">
           등록된 정보는 관리자 검토 후 게시됩니다. 허위 정보 등록 시 이용이 제한될 수 있습니다.

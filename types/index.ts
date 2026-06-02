@@ -1,3 +1,5 @@
+export type DealStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'sold'
+
 export interface Deal {
   id: string
   title: string
@@ -15,8 +17,14 @@ export interface Deal {
   reason_for_sale?: string
   contact_email?: string
   contact_phone?: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: DealStatus
+  seller_id?: string | null
+  admin_note?: string | null
+  approved_at?: string | null
+  rejected_at?: string | null
+  sold_at?: string | null
   created_at: string
+  updated_at?: string
 }
 
 export interface Inquiry {
