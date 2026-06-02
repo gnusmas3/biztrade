@@ -4,6 +4,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
+function KakaoIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.7 1.612 5.076 4.07 6.522L5.1 21l4.574-2.95C10.39 18.34 11.184 18.5 12 18.5c5.523 0 10-3.477 10-7.8S17.523 3 12 3z" fill="#3A1D1D"/>
+    </svg>
+  )
+}
+
 function AuthContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -14,6 +22,7 @@ function AuthContent() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [kakaoLoading, setKakaoLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
 
@@ -23,6 +32,22 @@ function AuthContent() {
       if (session) router.replace(redirectTo)
     })
   }, [router, redirectTo])
+
+  const handleKakaoLogin = async () => {
+    setKakaoLoading(true)
+    setError('')
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+      },
+    })
+    if (err) {
+      setError('카카오 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      setKakaoLoading(false)
+    }
+    // 성공 시 카카오 로그인 페이지로 리다이렉트됨 (로딩 유지)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,6 +122,33 @@ function AuthContent() {
         >
           회원가입
         </button>
+      </div>
+
+      {/* 카카오 간편 로그인 */}
+      <button
+        onClick={handleKakaoLogin}
+        disabled={kakaoLoading || loading}
+        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-semibold text-sm transition-opacity disabled:opacity-60"
+        style={{ backgroundColor: '#FEE500', color: '#191600' }}
+      >
+        {kakaoLoading ? (
+          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3C6.477 3 2 6.75 2 11.25c0 2.872 1.71 5.4 4.328 6.938L5.25 21.75l4.863-3.137c.607.112 1.233.17 1.887.17 5.523 0 10-3.75 10-8.483S17.523 3 12 3z" fill="#191600"/>
+          </svg>
+        )}
+        {kakaoLoading ? '카카오 연결 중...' : '카카오로 1초 로그인'}
+      </button>
+
+      {/* 구분선 */}
+      <div className="flex items-center gap-3 my-2">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">또는 이메일로</span>
+        <div className="flex-1 h-px bg-gray-200" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
