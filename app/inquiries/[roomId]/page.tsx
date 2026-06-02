@@ -323,7 +323,7 @@ export default function InquiryRoomPage() {
       const msgs = (msgData as Message[]) ?? []
       setMessages(msgs)
 
-      const senderIds = [...new Set(msgs.map(m => m.sender_id))]
+      const senderIds = Array.from(new Set(msgs.map(m => m.sender_id)))
       await loadSenderNames(senderIds)
       await loadSignedUrlsForMessages(msgs)
 

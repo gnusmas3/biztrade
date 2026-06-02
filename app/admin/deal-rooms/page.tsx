@@ -48,7 +48,7 @@ export default function AdminDealRoomsPage() {
       if (!roomData) { setLoading(false); return }
 
       // Enrich with buyer profiles and message counts
-      const buyerIds = [...new Set((roomData as DealRoom[]).map(r => r.buyer_id))]
+      const buyerIds = Array.from(new Set((roomData as DealRoom[]).map(r => r.buyer_id)))
       const { data: profileData } = await supabase
         .from('profiles')
         .select('user_id, name, email')
