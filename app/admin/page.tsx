@@ -23,8 +23,20 @@ function fmt(n?: number | null) {
   return `${(n / 10000).toFixed(0)}만`
 }
 
-const STATUS_STYLES: Record<string, string> = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700' }
-const STATUS_LABELS: Record<string, string> = { pending: '승인대기', approved: '승인', rejected: '반려' }
+const STATUS_STYLES: Record<string, string> = {
+  draft:    'bg-gray-100 text-gray-600',
+  pending:  'bg-yellow-100 text-yellow-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  sold:     'bg-blue-100 text-blue-700',
+}
+const STATUS_LABELS: Record<string, string> = {
+  draft:    '초안',
+  pending:  '승인대기',
+  approved: '승인',
+  rejected: '반려',
+  sold:     '거래완료',
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats>({ totalMembers: 0, totalDeals: 0, pendingDeals: 0, todaySignups: 0 })
