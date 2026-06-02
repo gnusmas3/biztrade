@@ -12,6 +12,7 @@ export default function Navbar() {
     { href: '/valuation', label: '가치평가' },
     { href: '/sell', label: '매물 등록' },
     { href: '/my-deals', label: '내 매물' },
+    { href: '/my-inquiries', label: '내 인수문의' },
   ]
 
   return (
